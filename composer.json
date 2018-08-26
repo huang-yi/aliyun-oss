@@ -1,0 +1,29 @@
+{
+    "name": "huang-yi/aliyun-oss",
+    "description": "Aliyun OSS SDK for PHP",
+    "keywords": ["aliyun", "oss", "cloud", "sdk"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Huang Yi",
+            "email": "coodeer@163.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.0",
+        "guzzlehttp/guzzle": "^6.3"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "~6.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "HuangYi\\AliyunOss\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "HuangYi\\AliyunOss\\Tests\\": "tests"
+        }
+    }
+}
