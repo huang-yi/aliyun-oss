@@ -3,8 +3,10 @@
 namespace HuangYi\AliyunOss\Resources;
 
 use HuangYi\AliyunOss\Requests\Object\CopyObjectRequest;
+use HuangYi\AliyunOss\Requests\Object\GetObjectRequest;
 use HuangYi\AliyunOss\Requests\Object\PutObjectRequest;
 use HuangYi\AliyunOss\Responses\Object\CopyObjectResponse;
+use HuangYi\AliyunOss\Responses\Object\GetObjectResponse;
 use HuangYi\AliyunOss\Responses\Object\PutObjectResponse;
 
 class ObjectResource extends Resource
@@ -19,13 +21,9 @@ class ObjectResource extends Resource
      */
     public function putObject(string $path, string $contents, array $options = [])
     {
-        $request = PutObjectRequest::make($this->client);
+        $request = PutObjectRequest::make($this->client, $options);
 
         $request->setPath($path);
-
-        if (isset($options['headers'])) {
-            $request->setHeader($options['headers']);
-        }
 
         $request->setHeader('Content-Length', strlen($contents));
 
@@ -45,13 +43,9 @@ class ObjectResource extends Resource
      */
     public function copyObject(string $fromBucket, string $fromPath, string $newPath, array $options = [])
     {
-        $request = CopyObjectRequest::make($this->client);
+        $request = CopyObjectRequest::make($this->client, $options);
 
         $request->setPath($newPath);
-
-        if (isset($options['headers'])) {
-            $request->setHeader($options['headers']);
-        }
 
         $fromBucket = trim($fromBucket, '/');
         $fromPath = trim($fromPath, '/');
@@ -59,5 +53,21 @@ class ObjectResource extends Resource
         $request->setHeader('x-oss-copy-source', '/' . $fromBucket . '/' . $fromPath);
 
         return CopyObjectResponse::make($request->request());
+    }
+
+    /**
+     * Copy object.
+     *
+     * @param string $path
+     * @param array $options
+     * @return \HuangYi\AliyunOss\Responses\Object\CopyObjectResponse
+     */
+    public function getObject(string $path, array $options = [])
+    {
+        $request = GetObjectRequest::make($this->client, $options);
+
+        $request->setPath($path);
+
+        return GetObjectResponse::make($request->request());
     }
 }

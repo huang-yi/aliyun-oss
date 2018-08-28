@@ -25,14 +25,4 @@ class CopyObjectRequest extends Request
     {
         return $this->getUrl();
     }
-
-    /**
-     * Return the request options.
-     *
-     * @return array
-     */
-    public function options() : array
-    {
-        return [];
-    }
 }

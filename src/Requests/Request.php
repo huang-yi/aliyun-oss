@@ -28,25 +28,11 @@ abstract class Request implements RequestContract
     protected $subResource;
 
     /**
-     * Request queries.
+     * request options.
      *
      * @var array
      */
-    protected $queries = [];
-
-    /**
-     * Request headers.
-     *
-     * @var array
-     */
-    protected $headers = [];
-
-    /**
-     * Request body.
-     *
-     * @var string
-     */
-    protected $body = '';
+    protected $options = [];
 
     /**
      * OSS Client.
@@ -66,22 +52,24 @@ abstract class Request implements RequestContract
      * Make a new Request.
      *
      * @param \HuangYi\AliyunOss\OssClient $client
+     * @param array $options
      * @param \GuzzleHttp\ClientInterface|null $http
      * @return static
      */
-    public static function make(OssClient $client, ClientInterface $http = null)
+    public static function make(OssClient $client, array $options = [], ClientInterface $http = null)
     {
-        return new static($client, $http);
+        return new static($client, $options, $http);
     }
 
     /**
      * Create a new Request.
      *
      * @param \HuangYi\AliyunOss\OssClient $client
+     * @param array $options
      * @param \GuzzleHttp\ClientInterface $http
      * @return void
      */
-    public function __construct(OssClient $client, ClientInterface $http = null)
+    public function __construct(OssClient $client, array $options = [], ClientInterface $http = null)
     {
         $this->client = $client;
         $this->http = $http ?? new Client;
@@ -100,13 +88,6 @@ abstract class Request implements RequestContract
      * @return string
      */
     abstract public function url(): string;
-
-    /**
-     * Return the request options.
-     *
-     * @return array
-     */
-    abstract public function options(): array;
 
     /**
      * Send http request.
@@ -217,17 +198,11 @@ abstract class Request implements RequestContract
      *
      * @return array
      */
-    public function getOptions()
+    public function getOptions(): array
     {
-        $options = $this->options();
+        $this->options['headers'] = $this->getHeaders();
 
-        if ($this->getBody()) {
-            $options['body'] = $this->getBody();
-        }
-
-        $options['headers'] = $this->getHeaders();
-
-        return $options;
+        return $this->options;
     }
 
     /**
@@ -291,7 +266,7 @@ abstract class Request implements RequestContract
      */
     public function getQueries(): array
     {
-        return $this->queries;
+        return $this->options['query'] ?? [];
     }
 
     /**
@@ -299,13 +274,17 @@ abstract class Request implements RequestContract
      * @param string $value
      * @return $this
      */
-    public function setQuery($key, $value)
+    public function setQuery($key, $value = null)
     {
         if (is_array($key)) {
             return $this->setQueries($key);
         }
 
-        $this->queries[$key] = $value;
+        if (! isset($this->options['query'])) {
+            $this->options['query'] = [];
+        }
+
+        $this->options['query'][$key] = $value;
 
         return $this;
     }
@@ -316,16 +295,46 @@ abstract class Request implements RequestContract
      */
     public function setQueries(array $queries)
     {
-        $this->queries = array_merge($this->queries, $queries);
+        if (! isset($this->options['query'])) {
+            $this->options['query'] = [];
+        }
+
+        $this->options['query'] = array_merge($this->options['query'], $queries);
 
         return $this;
     }
 
     /**
+     * Get headers.
+     *
+     * @return array
+     */
+    public function getHeaders()
+    {
+        $headers = $this->options['headers'] ?? [];
+
+        if (! isset($headers['Content-Type'])) {
+            $headers['Content-Type'] = 'application/octet-stream';
+        }
+
+        if (isset($this->options['body'])) {
+            $headers['Content-Length'] = strlen($this->options['body']);
+            $headers['Content-MD5'] = base64_encode(md5($this->options['body'], true));
+        }
+
+        $headers['Date'] = gmdate('D, d M Y H:i:s \G\M\T');
+        $headers['Authorization'] = $this->getAuthorization($headers);
+
+        $this->options['headers'] = $headers;
+
+        return $headers;
+    }
+
+    /**
      * Set header.
      *
-     * @param mixed $key
-     * @param mixed $value
+     * @param string $key
+     * @param string $value
      * @return $this
      */
     public function setHeader($key, $value = null)
@@ -334,7 +343,11 @@ abstract class Request implements RequestContract
             return $this->setHeaders($key);
         }
 
-        $this->headers[$key] = $value;
+        if (! isset($this->options['headers'])) {
+            $this->options['headers'] = [];
+        }
+
+        $this->options['headers'][$key] = $value;
 
         return $this;
     }
@@ -347,38 +360,32 @@ abstract class Request implements RequestContract
      */
     public function setHeaders(array $headers)
     {
-        $this->headers = array_merge($this->headers, $headers);
+        if (! isset($this->options['headers'])) {
+            $this->options['headers'] = [];
+        }
+
+        $this->options['headers'] = array_merge($this->options['headers'], $headers);
 
         return $this;
     }
 
     /**
-     * Get headers.
-     *
-     * @return array
+     * @return string
      */
-    public function getHeaders()
+    public function getBody() : string
     {
-        $options = $this->options();
-        $headers = $this->headers;
+        return $this->options['body'] ?? '';
+    }
 
-        if (isset($options['headers'])) {
-            $headers = array_merge($options['headers'], $headers);
-        }
+    /**
+     * @param string $body
+     * @return $this
+     */
+    public function setBody(string $body)
+    {
+        $this->options['body'] = $body;
 
-        if (! isset($headers['Content-Type'])) {
-            $headers['Content-Type'] = 'application/octet-stream';
-        }
-
-        if ($this->getBody()) {
-            $headers['Content-Length'] = strlen($this->getBody());
-            $headers['Content-MD5'] = base64_encode(md5($this->getBody(), true));
-        }
-
-        $headers['Date'] = gmdate('D, d M Y H:i:s \G\M\T');
-        $headers['Authorization'] = $this->getAuthorization($headers);
-
-        return $headers;
+        return $this;
     }
 
     /**
@@ -449,25 +456,6 @@ abstract class Request implements RequestContract
         }
 
         return $resource;
-    }
-
-    /**
-     * @return string
-     */
-    public function getBody()
-    {
-        return $this->body;
-    }
-
-    /**
-     * @param string $body
-     * @return $this
-     */
-    public function setBody(string $body)
-    {
-        $this->body = $body;
-
-        return $this;
     }
 
     /**

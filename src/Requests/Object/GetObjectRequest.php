@@ -4,7 +4,7 @@ namespace HuangYi\AliyunOss\Requests\Object;
 
 use HuangYi\AliyunOss\Requests\Request;
 
-class PutObjectRequest extends Request
+class GetObjectRequest extends Request
 {
     /**
      * Return the request method.
@@ -13,7 +13,7 @@ class PutObjectRequest extends Request
      */
     public function method() : string
     {
-        return 'PUT';
+        return 'GET';
     }
 
     /**

@@ -9,7 +9,7 @@ $accessKeySecret = 'sxhTuarYlL6xWhAWKFXLVpBXxs0mtk';
 
 $client = new \HuangYi\AliyunOss\OssClient($bucket, $endpoint, $accessKeyId, $accessKeySecret);
 
-$response = $client->object->copyObject($bucket, '/test.jpeg', '/test-copy.jpeg');
+$response = $client->object->getObject('/test.jpeg');
 
 var_export($response->getHeaders());
 echo "\n";
