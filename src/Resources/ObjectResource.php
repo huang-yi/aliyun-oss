@@ -161,7 +161,7 @@ class ObjectResource extends Resource
      */
     public function getObjectMeta(string $path, array $options = [])
     {
-        $request = GetRequest::make($this->client, $options);
+        $request = HeadRequest::make($this->client, $options);
 
         $request->setPath($path);
         $request->setSubResource('objectMeta');
