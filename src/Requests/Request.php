@@ -172,10 +172,6 @@ abstract class Request implements RequestContract
     {
         $parts = $this->getQueryStringParts();
 
-        if ($this->getSubResource()) {
-            array_unshift($parts, rawurlencode($this->getSubResource()));
-        }
-
         return implode('&', $parts);
     }
 
@@ -186,7 +182,7 @@ abstract class Request implements RequestContract
      */
     protected function getQueryStringParts()
     {
-        $parts = [];
+        $parts = [rawurlencode($this->getSubResource())];
 
         foreach ($this->getQueries() as $key => $value) {
             $parts[] = rawurlencode($key) . '=' . rawurlencode($value);
@@ -220,7 +216,11 @@ abstract class Request implements RequestContract
      */
     protected function handleException(Exception $exception)
     {
-        $requestException = new RequestException($exception->getMessage(), $exception->getCode(), $exception);
+        $requestException = new RequestException(
+            $exception->getMessage(),
+            $exception->getCode(),
+            $exception
+        );
 
         if ($exception instanceof BadResponseException) {
             $requestException->withResponse($exception->getResponse());
@@ -319,13 +319,13 @@ abstract class Request implements RequestContract
     {
         $headers = $this->options['headers'] ?? [];
 
-        if (! isset($headers['Content-Type'])) {
-            $headers['Content-Type'] = 'application/octet-stream';
-        }
-
         if (isset($this->options['body'])) {
             $headers['Content-Length'] = strlen($this->options['body']);
             $headers['Content-MD5'] = base64_encode(md5($this->options['body'], true));
+
+            if (! isset($headers['Content-Type'])) {
+                $headers['Content-Type'] = 'application/octet-stream';
+            }
         }
 
         $headers['Date'] = gmdate('D, d M Y H:i:s \G\M\T');
@@ -403,10 +403,11 @@ abstract class Request implements RequestContract
     protected function getAuthorization(array $headers)
     {
         $contentMD5 = $headers['Content-MD5'] ?? '';
+        $contentType = $headers['Content-Type'] ?? '';
 
         $signString = $this->method() . "\n" .
             $contentMD5 . "\n" .
-            $headers['Content-Type'] . "\n" .
+            $contentType . "\n" .
             $headers['Date'] . "\n" .
             $this->getCanonicalizedOssHeadersString($headers) .
             $this->getCanonicalizedResource();
