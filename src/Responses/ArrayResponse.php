@@ -1,10 +1,8 @@
 <?php
 
-namespace HuangYi\AliyunOss\Responses\Object;
+namespace HuangYi\AliyunOss\Responses;
 
-use HuangYi\AliyunOss\Responses\Response;
-
-class CopyObjectResponse extends Response
+class ArrayResponse extends Response
 {
     /**
      * Body format.

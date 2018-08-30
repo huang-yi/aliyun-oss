@@ -2,12 +2,14 @@
 
 namespace HuangYi\AliyunOss\Resources;
 
-use HuangYi\AliyunOss\Requests\Object\CopyObjectRequest;
-use HuangYi\AliyunOss\Requests\Object\GetObjectRequest;
-use HuangYi\AliyunOss\Requests\Object\PutObjectRequest;
-use HuangYi\AliyunOss\Responses\Object\CopyObjectResponse;
-use HuangYi\AliyunOss\Responses\Object\GetObjectResponse;
-use HuangYi\AliyunOss\Responses\Object\PutObjectResponse;
+use HuangYi\AliyunOss\Exceptions\MethodNotSupportedException;
+use HuangYi\AliyunOss\Requests\DeleteRequest;
+use HuangYi\AliyunOss\Requests\GetRequest;
+use HuangYi\AliyunOss\Requests\HeadRequest;
+use HuangYi\AliyunOss\Requests\PostRequest;
+use HuangYi\AliyunOss\Requests\PutRequest;
+use HuangYi\AliyunOss\Responses\ArrayResponse;
+use HuangYi\AliyunOss\Responses\RawResponse;
 
 class ObjectResource extends Resource
 {
@@ -17,19 +19,18 @@ class ObjectResource extends Resource
      * @param string $path
      * @param string $contents
      * @param array $options
-     * @return \HuangYi\AliyunOss\Responses\Object\PutObjectResponse
+     * @return \HuangYi\AliyunOss\Responses\RawResponse
+     * @throws \HuangYi\AliyunOss\Exceptions\RequestException
      */
     public function putObject(string $path, string $contents, array $options = [])
     {
-        $request = PutObjectRequest::make($this->client, $options);
+        $request = PutRequest::make($this->client, $options);
 
         $request->setPath($path);
-
         $request->setHeader('Content-Length', strlen($contents));
-
         $request->setBody($contents);
 
-        return PutObjectResponse::make($request->request());
+        return RawResponse::make($request->request());
     }
 
     /**
@@ -39,11 +40,12 @@ class ObjectResource extends Resource
      * @param string $fromPath
      * @param string $newPath
      * @param array $options
-     * @return \HuangYi\AliyunOss\Responses\Object\CopyObjectResponse
+     * @return \HuangYi\AliyunOss\Responses\ArrayResponse
+     * @throws \HuangYi\AliyunOss\Exceptions\RequestException
      */
     public function copyObject(string $fromBucket, string $fromPath, string $newPath, array $options = [])
     {
-        $request = CopyObjectRequest::make($this->client, $options);
+        $request = PutRequest::make($this->client, $options);
 
         $request->setPath($newPath);
 
@@ -52,7 +54,7 @@ class ObjectResource extends Resource
 
         $request->setHeader('x-oss-copy-source', '/' . $fromBucket . '/' . $fromPath);
 
-        return CopyObjectResponse::make($request->request());
+        return ArrayResponse::make($request->request());
     }
 
     /**
@@ -60,14 +62,239 @@ class ObjectResource extends Resource
      *
      * @param string $path
      * @param array $options
-     * @return \HuangYi\AliyunOss\Responses\Object\CopyObjectResponse
+     * @return \HuangYi\AliyunOss\Responses\RawResponse
+     * @throws \HuangYi\AliyunOss\Exceptions\RequestException
      */
     public function getObject(string $path, array $options = [])
     {
-        $request = GetObjectRequest::make($this->client, $options);
+        $request = GetRequest::make($this->client, $options);
 
         $request->setPath($path);
 
-        return GetObjectResponse::make($request->request());
+        return RawResponse::make($request->request());
+    }
+
+    /**
+     * Append object.
+     *
+     * @param string $path
+     * @param int $position
+     * @param array $options
+     * @return \HuangYi\AliyunOss\Responses\RawResponse
+     * @throws \HuangYi\AliyunOss\Exceptions\RequestException
+     */
+    public function appendObject(string $path, int $position = 0, array $options = [])
+    {
+        $request = PostRequest::make($this->client, $options);
+
+        $request->setPath($path);
+        $request->setSubResource('append');
+        $request->setQuery('position', $position);
+
+        return RawResponse::make($request->request());
+    }
+
+    /**
+     * Delete object.
+     *
+     * @param string $path
+     * @param array $options
+     * @return \HuangYi\AliyunOss\Responses\RawResponse
+     * @throws \HuangYi\AliyunOss\Exceptions\RequestException
+     */
+    public function deleteObject(string $path, array $options = [])
+    {
+        $request = DeleteRequest::make($this->client, $options);
+
+        $request->setPath($path);
+
+        return RawResponse::make($request->request());
+    }
+
+    /**
+     * Delete multiple objects.
+     *
+     * @param array $paths
+     * @param bool $quite
+     * @param array $options
+     * @return \HuangYi\AliyunOss\Responses\ArrayResponse
+     * @throws \HuangYi\AliyunOss\Exceptions\RequestException
+     */
+    public function deleteMultipleObjects(array $paths, bool $quite = true, array $options = [])
+    {
+        $request = PostRequest::make($this->client, $options);
+
+        $quite = $quite ? 'true' : 'false';
+        $objects = '<Object><Key>' . implode('</Key></Object><Object><Key>', $paths) . '</Key></Object>';
+        $body = sprintf('<?xml version="1.0" encoding="UTF-8"?><Delete><Quiet>%s</Quiet>%s</Delete>', $quite, $objects);
+
+        $request->setBody($body);
+        $request->setSubResource('delete');
+
+        return ArrayResponse::make($request->request());
+    }
+
+    /**
+     * Head object.
+     *
+     * @param string $path
+     * @param array $options
+     * @return \HuangYi\AliyunOss\Responses\RawResponse
+     * @throws \HuangYi\AliyunOss\Exceptions\RequestException
+     */
+    public function headObject(string $path, array $options = [])
+    {
+        $request = HeadRequest::make($this->client, $options);
+
+        $request->setPath($path);
+
+        return RawResponse::make($request->request());
+    }
+
+    /**
+     * Get object meta.
+     *
+     * @param string $path
+     * @param array $options
+     * @return \HuangYi\AliyunOss\Responses\RawResponse
+     * @throws \HuangYi\AliyunOss\Exceptions\RequestException
+     */
+    public function getObjectMeta(string $path, array $options = [])
+    {
+        $request = GetRequest::make($this->client, $options);
+
+        $request->setPath($path);
+        $request->setSubResource('objectMeta');
+
+        return RawResponse::make($request->request());
+    }
+
+    /**
+     * Put object acl.
+     *
+     * @param string $path
+     * @param string $permission
+     * @param array $options
+     * @return \HuangYi\AliyunOss\Responses\RawResponse
+     * @throws \HuangYi\AliyunOss\Exceptions\RequestException
+     */
+    public function putObjectAcl(string $path, string $permission, array $options = [])
+    {
+        $request = PutRequest::make($this->client, $options);
+
+        $request->setPath($path);
+        $request->setSubResource('acl');
+        $request->setHeader('x-oss-object-acl', $permission);
+
+        return RawResponse::make($request->request());
+    }
+
+    /**
+     * Get object acl.
+     *
+     * @param string $path
+     * @param array $options
+     * @return \HuangYi\AliyunOss\Responses\ArrayResponse
+     * @throws \HuangYi\AliyunOss\Exceptions\RequestException
+     */
+    public function getObjectAcl(string $path, array $options = [])
+    {
+        $request = GetRequest::make($this->client, $options);
+
+        $request->setPath($path);
+        $request->setSubResource('acl');
+
+        return ArrayResponse::make($request->request());
+    }
+
+    /**
+     * Post object.
+     *
+     * @param string $path
+     * @param array $options
+     * @return void
+     * @throws \HuangYi\AliyunOss\Exceptions\MethodNotSupportedException
+     */
+    public function postObject(string $path, array $options = [])
+    {
+        throw new MethodNotSupportedException("Method [PostObject] is not supported.");
+    }
+
+    /**
+     * Callback.
+     *
+     * @return void
+     * @throws \HuangYi\AliyunOss\Exceptions\MethodNotSupportedException
+     */
+    public function callback()
+    {
+        throw new MethodNotSupportedException("Method [Callback] is not supported.");
+    }
+
+    /**
+     * Put symlink.
+     *
+     * @param string $path
+     * @param string $target
+     * @param array $options
+     * @return \HuangYi\AliyunOss\Responses\RawResponse
+     * @throws \HuangYi\AliyunOss\Exceptions\RequestException
+     */
+    public function putSymlink(string $path, string $target, array $options = [])
+    {
+        $request = PutRequest::make($this->client, $options);
+
+        $request->setPath($path);
+        $request->setSubResource('symlink');
+        $request->setHeader('x-oss-symlink-target', $target);
+
+        return RawResponse::make($request->request());
+    }
+
+    /**
+     * Get symlink.
+     *
+     * @param string $path
+     * @param array $options
+     * @return \HuangYi\AliyunOss\Responses\RawResponse
+     * @throws \HuangYi\AliyunOss\Exceptions\RequestException
+     */
+    public function getSymlink(string $path, array $options = [])
+    {
+        $request = GetRequest::make($this->client, $options);
+
+        $request->setPath($path);
+        $request->setSubResource('symlink');
+
+        return RawResponse::make($request->request());
+    }
+
+    /**
+     * Restore object.
+     *
+     * @param string $path
+     * @param array $options
+     * @return \HuangYi\AliyunOss\Responses\RawResponse
+     * @throws \HuangYi\AliyunOss\Exceptions\RequestException
+     */
+    public function restoreObject(string $path, array $options = [])
+    {
+        $request = PostRequest::make($this->client, $options);
+
+        $request->setPath($path);
+        $request->setSubResource('restore');
+
+        return RawResponse::make($request->request());
+    }
+
+    /**
+     * Select object.
+     *
+     * @return void
+     * @throws \HuangYi\AliyunOss\Exceptions\MethodNotSupportedException
+     */
+    public function selectObject()
+    {
+        throw new MethodNotSupportedException("Method [Select] is not supported.");
     }
 }

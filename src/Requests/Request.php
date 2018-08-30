@@ -72,6 +72,7 @@ abstract class Request implements RequestContract
     public function __construct(OssClient $client, array $options = [], ClientInterface $http = null)
     {
         $this->client = $client;
+        $this->options = $options;
         $this->http = $http ?? new Client;
     }
 
@@ -81,13 +82,6 @@ abstract class Request implements RequestContract
      * @return string
      */
     abstract public function method(): string;
-
-    /**
-     * Return the request URL.
-     *
-     * @return string
-     */
-    abstract public function url(): string;
 
     /**
      * Send http request.
@@ -101,7 +95,7 @@ abstract class Request implements RequestContract
             $response = $this->http->request(
                 $this->method(),
                 $this->url(),
-                $this->getOptions()
+                $this->options()
             );
         } catch (Exception $exception) {
             $this->handleException($exception);
@@ -111,12 +105,22 @@ abstract class Request implements RequestContract
     }
 
     /**
+     * Return the request URL.
+     *
+     * @return string
+     */
+    public function url(): string
+    {
+        return $this->getUrl();
+    }
+
+    /**
      * Get request url.
      *
      * @param bool $withBucket
      * @return string
      */
-    public function getUrl(bool $withBucket = true)
+    public function getUrl(bool $withBucket = true): string
     {
         $scheme = $this->getScheme();
         $domain = $this->getDomain($withBucket);
@@ -198,7 +202,7 @@ abstract class Request implements RequestContract
      *
      * @return array
      */
-    public function getOptions(): array
+    public function options(): array
     {
         $this->options['headers'] = $this->getHeaders();
 
@@ -214,13 +218,13 @@ abstract class Request implements RequestContract
      */
     protected function handleException(Exception $exception)
     {
+        $requestException = new RequestException($exception->getMessage(), $exception->getCode(), $exception);
+
         if ($exception instanceof BadResponseException) {
-            $message = (string)$exception->getResponse()->getBody();
-        } else {
-            $message = $exception->getMessage();
+            $requestException->withResponse($exception->getResponse());
         }
 
-        throw new RequestException($message, $exception->getCode(), $exception);
+        throw $requestException;
     }
 
     /**

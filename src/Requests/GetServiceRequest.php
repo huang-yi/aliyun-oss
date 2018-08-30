@@ -1,10 +1,10 @@
 <?php
 
-namespace HuangYi\AliyunOss\Requests\Object;
+namespace HuangYi\AliyunOss\Requests\Service;
 
 use HuangYi\AliyunOss\Requests\Request;
 
-class PutObjectRequest extends Request
+class GetServiceRequest extends Request
 {
     /**
      * Return the request method.
@@ -13,7 +13,7 @@ class PutObjectRequest extends Request
      */
     public function method() : string
     {
-        return 'PUT';
+        return 'GET';
     }
 
     /**
@@ -23,6 +23,6 @@ class PutObjectRequest extends Request
      */
     public function url() : string
     {
-        return $this->getUrl();
+        return $this->getUrl(false);
     }
 }

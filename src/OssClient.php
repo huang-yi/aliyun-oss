@@ -3,15 +3,15 @@
 namespace HuangYi\AliyunOss;
 
 use HuangYi\AliyunOss\Exceptions\ResourceNotExistsException;
-use HuangYi\AliyunOss\Resources\Bucket;
+use HuangYi\AliyunOss\Resources\BucketResource;
 use HuangYi\AliyunOss\Resources\ObjectResource;
-use HuangYi\AliyunOss\Resources\Service;
+use HuangYi\AliyunOss\Resources\ServiceResource;
 
 /**
  * OssClient.
  *
- * @property \HuangYi\AliyunOss\Resources\Service $service
- * @property \HuangYi\AliyunOss\Resources\Bucket $bucket
+ * @property \HuangYi\AliyunOss\Resources\ServiceResource $service
+ * @property \HuangYi\AliyunOss\Resources\BucketResource $bucket
  * @property \HuangYi\AliyunOss\Resources\ObjectResource $object
  */
 class OssClient
@@ -64,8 +64,8 @@ class OssClient
      * @var array
      */
     protected $resourcesMap = [
-        'service' => Service::class,
-        'bucket' => Bucket::class,
+        'service' => ServiceResource::class,
+        'bucket' => BucketResource::class,
         'object' => ObjectResource::class,
     ];
 
@@ -91,6 +91,7 @@ class OssClient
      *
      * @param string $resource
      * @return \HuangYi\AliyunOss\Contracts\ResourceContract
+     * @throws \HuangYi\AliyunOss\Exceptions\ResourceNotExistsException
      */
     public function getResource($resource)
     {
@@ -218,6 +219,7 @@ class OssClient
      *
      * @param string $resource
      * @return \HuangYi\AliyunOss\Contracts\ResourceContract
+     * @throws \HuangYi\AliyunOss\Exceptions\ResourceNotExistsException
      */
     public function __get($resource)
     {
