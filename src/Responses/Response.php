@@ -101,6 +101,10 @@ abstract class Response implements ResponseContract
      */
     protected function xml2array($xml)
     {
+        if (! $xml) {
+            return [];
+        }
+
         $xml = simplexml_load_string($xml, "SimpleXMLElement", LIBXML_NOCDATA);
 
         return  json_decode(json_encode($xml), true);
