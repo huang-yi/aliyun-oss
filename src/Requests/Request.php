@@ -206,6 +206,8 @@ abstract class Request implements RequestContract
     {
         $this->options['headers'] = $this->getHeaders();
 
+        unset($this->options['query']);
+
         return $this->options;
     }
 
