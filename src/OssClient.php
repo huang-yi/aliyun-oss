@@ -21,7 +21,7 @@ class OssClient
      *
      * @var string
      */
-    protected $bucket;
+    protected $bucketName;
 
     /**
      * OSS endpoint.
@@ -72,15 +72,15 @@ class OssClient
     /**
      * Create a new OssClient.
      *
-     * @param string $bucket
+     * @param string $bucketName
      * @param string $endpoint
      * @param string $accessKeyId
      * @param string $accessKeySecret
      * @return void
      */
-    public function __construct(string $bucket, string $endpoint, string $accessKeyId, string $accessKeySecret)
+    public function __construct(string $bucketName, string $endpoint, string $accessKeyId, string $accessKeySecret)
     {
-        $this->bucket = $bucket;
+        $this->bucketName = $bucketName;
         $this->endpoint = $endpoint;
         $this->accessKeyId = $accessKeyId;
         $this->accessKeySecret = $accessKeySecret;
@@ -122,18 +122,18 @@ class OssClient
     /**
      * @return string
      */
-    public function getBucket(): string
+    public function getBucketName(): string
     {
-        return $this->bucket;
+        return $this->bucketName;
     }
 
     /**
-     * @param string $bucket
+     * @param string $bucketName
      * @return $this
      */
-    public function setBucket(string $bucket)
+    public function setBucketName(string $bucketName)
     {
-        $this->bucket = $bucket;
+        $this->bucket = $bucketName;
 
         return $this;
     }

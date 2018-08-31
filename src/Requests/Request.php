@@ -157,7 +157,7 @@ abstract class Request implements RequestContract
         $domain = $this->client->getEndpoint();
 
         if ($withBucket) {
-            $domain = $this->client->getBucket() . '.' . $domain;
+            $domain = $this->client->getBucketName() . '.' . $domain;
         }
 
         return $domain;
@@ -182,7 +182,11 @@ abstract class Request implements RequestContract
      */
     protected function getQueryStringParts()
     {
-        $parts = [rawurlencode($this->getSubResource())];
+        $parts = [];
+
+        if ($this->getSubResource()) {
+            $parts[] = rawurlencode($this->getSubResource());
+        }
 
         foreach ($this->getQueries() as $key => $value) {
             $parts[] = rawurlencode($key) . '=' . rawurlencode($value);
@@ -454,7 +458,7 @@ abstract class Request implements RequestContract
      */
     protected function getCanonicalizedResource()
     {
-        $resource = '/' . $this->client->getBucket() . $this->getPath();
+        $resource = '/' . $this->client->getBucketName() . $this->getPath();
 
         $queryString = $this->getQueryString();
 
