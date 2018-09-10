@@ -49,6 +49,17 @@ abstract class Request implements RequestContract
     protected $http;
 
     /**
+     * @var array
+     */
+    protected $beSignedQueryKeys = [
+        'partNumber', 'uploadId', 'comp', 'status', 'startTime', 'endTime',
+        'position', 'symlink', 'restore', 'x-oss-process',
+        'response-content-type', 'response-content-language',
+        'response-cache-control', 'response-content-encoding',
+        'response-expires', 'response-content-disposition',
+    ];
+
+    /**
      * Make a new Request.
      *
      * @param \HuangYi\AliyunOss\OssClient $client
@@ -166,35 +177,45 @@ abstract class Request implements RequestContract
     /**
      * Get query string.
      *
+     * @param bool $sign
      * @return string
      */
-    public function getQueryString()
+    public function getQueryString($sign = false)
     {
-        $parts = $this->getQueryStringParts();
+        $parts = [];
+
+        if ($subResource = $this->getSubResource()) {
+            $parts[] = $subResource;
+        }
+
+        if ($queries = $this->getQueries()) {
+            if ($sign) {
+                $queries = $this->filterSignQueries($queries);
+            }
+
+            $parts[] = http_build_query($queries, null, '&', PHP_QUERY_RFC3986);
+        }
 
         return implode('&', $parts);
     }
 
     /**
-     * Get query string parts.
-     *
+     * @param array $queries
      * @return array
      */
-    protected function getQueryStringParts()
+    protected function filterSignQueries($queries)
     {
-        $parts = [];
+        $signQueries = [];
 
-        if ($this->getSubResource()) {
-            $parts[] = rawurlencode($this->getSubResource());
+        foreach ($queries as $key => $value) {
+            if (in_array($key, $this->beSignedQueryKeys)) {
+                $signQueries[$key] = $value;
+            }
         }
 
-        foreach ($this->getQueries() as $key => $value) {
-            $parts[] = rawurlencode($key) . '=' . rawurlencode($value);
-        }
+        ksort($signQueries);
 
-        sort($parts);
-
-        return $parts;
+        return $signQueries;
     }
 
     /**
@@ -460,7 +481,7 @@ abstract class Request implements RequestContract
     {
         $resource = '/' . $this->client->getBucketName() . $this->getPath();
 
-        $queryString = $this->getQueryString();
+        $queryString = $this->getQueryString(true);
 
         if ($queryString) {
             $resource .= '?' . $queryString;
