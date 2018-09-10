@@ -36,20 +36,20 @@ class ObjectResource extends Resource
     /**
      * Copy object.
      *
-     * @param string $fromBucket
      * @param string $fromPath
      * @param string $newPath
+     * @param string $fromBucket
      * @param array $options
      * @return \HuangYi\AliyunOss\Responses\ArrayResponse
      * @throws \HuangYi\AliyunOss\Exceptions\RequestException
      */
-    public function copyObject(string $fromBucket, string $fromPath, string $newPath, array $options = [])
+    public function copyObject(string $fromPath, string $newPath, string $fromBucket = null, array $options = [])
     {
         $request = PutRequest::make($this->client, $options);
 
         $request->setPath($newPath);
 
-        $fromBucket = trim($fromBucket, '/');
+        $fromBucket = $fromBucket ? trim($fromBucket, '/') : $this->client->getBucketName();
         $fromPath = trim($fromPath, '/');
 
         $request->setHeader('x-oss-copy-source', '/' . $fromBucket . '/' . $fromPath);
