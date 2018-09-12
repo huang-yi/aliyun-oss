@@ -78,18 +78,21 @@ class ObjectResource extends Resource
      * Append object.
      *
      * @param string $path
+     * @param string $contents
      * @param int $position
      * @param array $options
      * @return \HuangYi\AliyunOss\Responses\RawResponse
      * @throws \HuangYi\AliyunOss\Exceptions\RequestException
      */
-    public function appendObject(string $path, int $position = 0, array $options = [])
+    public function appendObject(string $path, string $contents, int $position = 0, array $options = [])
     {
         $request = PostRequest::make($this->client, $options);
 
         $request->setPath($path);
         $request->setSubResource('append');
         $request->setQuery('position', $position);
+
+        $request->setBody($contents);
 
         return RawResponse::make($request->request());
     }
