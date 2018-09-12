@@ -2,7 +2,7 @@
 
 namespace HuangYi\AliyunOss\Resources;
 
-use HuangYi\AliyunOss\Requests\Service\GetServiceRequest;
+use HuangYi\AliyunOss\Requests\GetServiceRequest;
 use HuangYi\AliyunOss\Responses\ArrayResponse;
 
 class ServiceResource extends Resource
@@ -14,7 +14,7 @@ class ServiceResource extends Resource
      * @return \HuangYi\AliyunOss\Responses\ArrayResponse
      * @throws \HuangYi\AliyunOss\Exceptions\RequestException
      */
-    public function getService(array $options): ArrayResponse
+    public function getService(array $options = []): ArrayResponse
     {
         $request = new GetServiceRequest($this->client, $options);
 

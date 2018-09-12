@@ -1,8 +1,6 @@
 <?php
 
-namespace HuangYi\AliyunOss\Requests\Service;
-
-use HuangYi\AliyunOss\Requests\Request;
+namespace HuangYi\AliyunOss\Requests;
 
 class GetServiceRequest extends Request
 {
