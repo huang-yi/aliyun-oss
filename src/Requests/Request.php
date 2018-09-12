@@ -84,7 +84,7 @@ abstract class Request implements RequestContract
     {
         $this->client = $client;
         $this->options = $options;
-        $this->http = $http ?? new Client;
+        $this->http = $http ?? $client->getHttp() ?? new Client;
     }
 
     /**

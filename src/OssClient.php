@@ -70,6 +70,13 @@ class OssClient
     ];
 
     /**
+     * Http client.
+     *
+     * @var \GuzzleHttp\ClientInterface
+     */
+    protected $http;
+
+    /**
      * Create a new OssClient.
      *
      * @param string $bucketName
@@ -210,6 +217,25 @@ class OssClient
     public function setIsSecure(bool $isSecure)
     {
         $this->isSecure = $isSecure;
+
+        return $this;
+    }
+
+    /**
+     * @return \GuzzleHttp\ClientInterface
+     */
+    public function getHttp()
+    {
+        return $this->http;
+    }
+
+    /**
+     * @param \GuzzleHttp\ClientInterface $http
+     * @return $this
+     */
+    public function setHttp($http)
+    {
+        $this->http = $http;
 
         return $this;
     }
