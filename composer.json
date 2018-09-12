@@ -1,6 +1,6 @@
 {
     "name": "huang-yi/aliyun-oss",
-    "description": "Aliyun OSS SDK for PHP",
+    "description": "Unofficial Aliyun OSS SDK for PHP",
     "keywords": ["aliyun", "oss", "cloud", "sdk"],
     "license": "MIT",
     "authors": [
